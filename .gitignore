@@ -39,3 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Archivos y directorios que no deberían subirse al repositorio
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+/node_modules
+/.next
+/.out
+/dist
+.DS_Store
