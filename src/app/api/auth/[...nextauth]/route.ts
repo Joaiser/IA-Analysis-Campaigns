@@ -1,9 +1,10 @@
-import NextAuth from "next-auth";
+// src/app/api/auth/[...nextauth]/route.ts
+import NextAuth, { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import clientPromise from "@/app/lib/mongodb";
 
-const handler = NextAuth({
+export const authOptions: AuthOptions = {
     session: {
         strategy: "jwt",
     },
@@ -14,21 +15,26 @@ const handler = NextAuth({
                 email: { label: "Email", type: "text" },
                 password: { label: "Password", type: "password" },
             },
-
             async authorize(credentials) {
                 const client = await clientPromise;
-                const db = client.db("ia_analisys_campaigns")
-                const users = db.collection("users")
+                const db = client.db("test");
+                const users = db.collection("users");
 
-                const user = await users.findOne({ email: credentials?.email });
+                console.log("Trying to log in with email:", credentials?.email);
+
+
+                const user = await users.findOne({
+                    email: { $regex: new RegExp(`^${credentials?.email}$`, "i") }
+                });
+
                 if (!user) {
-                    console.log("No user found with the email");
+                    console.log("No user found");
                     return null;
                 }
-                const isVailidPassword = await compare(
-                    credentials!.password, user.password)
-                if (!isVailidPassword) {
-                    console.log("Password is not valid");
+
+                const isValidPassword = await compare(credentials!.password, user.password);
+                if (!isValidPassword) {
+                    console.log("Invalid password");
                     return null;
                 }
 
@@ -36,7 +42,7 @@ const handler = NextAuth({
                     id: user._id.toString(),
                     email: user.email,
                     role: user.role,
-                }
+                };
             },
         }),
     ],
@@ -56,6 +62,9 @@ const handler = NextAuth({
             }
             return session;
         },
-    }
-});
+    },
+};
+
+// handler para la API route
+const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

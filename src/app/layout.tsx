@@ -1,10 +1,11 @@
-'use client'; // Añade esta línea para hacer que el componente se ejecute en el cliente
-
 import "./globals.css";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { SessionProvider } from "next-auth/react";
+import Providers from "@/app/components/Providers";
+import { Metadata } from "next";
 
-
+export const metadata: Metadata = {
+  title: "Mi Aplicación", // Título más representativo de la app
+  description: "Aplicación creada con Next.js", // Descripción más relevante
+};
 
 export default function RootLayout({
   children,
@@ -12,14 +13,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es">
       <body>
-        <QueryClientProvider client={new QueryClient()}>
-          <SessionProvider>
-            {children}
-          </SessionProvider>
-        </QueryClientProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
 }
+

@@ -1,34 +1,27 @@
 'use client';
 
-import { signIn, useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLogin } from "@/hooks/useLogin"
 
 export default function LoginPage() {
+
+    const { login } = useLogin()
+    const router = useRouter();
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
-    const { data: session } = useSession();
-    const router = useRouter();
-
-    useEffect(() => {
-        if (session) {
-            router.push("/"); // Redirigir a la página principal si ya está autenticado
-        }
-    }, [session, router]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError("")
 
-        const result = await signIn("credentials", {
-            email,
-            password,
-            redirect: false,
-            callbackUrl: "/",
-        });
-
-        if (result?.error) {
-            setError("Invalid email or password");
+        try {
+            await login({ email, password })
+            router.push("/")
+        } catch (err: any) {
+            setError(err.message || "Error al iniciar sesión")
         }
     };
 
