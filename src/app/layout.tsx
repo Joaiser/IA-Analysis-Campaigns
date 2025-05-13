@@ -1,11 +1,10 @@
-import type { Metadata } from "next";
-import "./globals.css"; // Si tienes un archivo global de estilos
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+'use client'; // Añade esta línea para hacer que el componente se ejecute en el cliente
 
-export const metadata: Metadata = {
-  title: "Mi Aplicación", // Título más representativo de la app
-  description: "Aplicación creada con Next.js", // Descripción más relevante
-};
+import "./globals.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { SessionProvider } from "next-auth/react";
+
+
 
 export default function RootLayout({
   children,
@@ -16,7 +15,9 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <QueryClientProvider client={new QueryClient()}>
-          {children}
+          <SessionProvider>
+            {children}
+          </SessionProvider>
         </QueryClientProvider>
       </body>
     </html>

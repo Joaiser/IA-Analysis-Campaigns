@@ -53,4 +53,4 @@ async function createUser(email: string, plainPassword: string): Promise<void> {
     }
 }
 
-createUser("aitor.v@hotmail.com", "PruebadeContraseña1234");
+createUser("", "");
