@@ -1,5 +1,5 @@
 import "./globals.css";
-import Providers from "@/app/components/Providers";
+import { Providers } from "@/app/components/Providers";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <body>
         <Providers>{children}</Providers>
       </body>
