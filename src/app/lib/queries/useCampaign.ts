@@ -1,6 +1,8 @@
 //ARCHIVO PARA CONSULTAS DE CAMPAÑA USANDO REACT QUERY
 'use client';
 import { useQuery } from '@tanstack/react-query';
+import { normalizeCampaign } from '../utils/numberHepers';
+import { CampaignAd } from '../models/CampaignAd';
 
 export const useCampaigns = () => {
     return useQuery({
@@ -10,8 +12,10 @@ export const useCampaigns = () => {
             if (!res.ok) {
                 throw new Error('Error al obtener las campañas');
             }
-            const data = await res.json();
-            return data;
+            const data: CampaignAd[] = await res.json();
+
+
+            return data.map(normalizeCampaign);;
         }
     });
 }

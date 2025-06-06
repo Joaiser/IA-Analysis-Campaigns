@@ -27,7 +27,7 @@ const AD_FIELDS = [
 
 export async function GET() {
     try {
-        const url = `https://graph.facebook.com/v19.0/${AD_ACCOUNT_ID}/ads?fields=${AD_FIELDS}&access_token=${ACCESS_TOKEN}`;
+        const url = `https://graph.facebook.com/v19.0/${AD_ACCOUNT_ID}/ads?fields=${AD_FIELDS},adset_id&access_token=${ACCESS_TOKEN}`;
         const response = await fetch(url);
         const result = await response.json();
 
@@ -41,14 +41,18 @@ export async function GET() {
         for (const ad of result.data) {
             const insights = ad.insights?.data?.[0];
 
-            //obtener start time desde la campaña
-            let startTime: string = "";
+            let campaignStartTime = "";
+            let campaignStopTime = "";
 
-            if (ad.campaign_id) {
-                const campaignUrl = `https://graph.facebook.com/v19.0/${ad.campaign_id}?fields=start_time&access_token=${ACCESS_TOKEN}`;
-                const campaignRes = await fetch(campaignUrl);
-                const campaignData = await campaignRes.json();
-                startTime = campaignData.start_time || "";
+            if (ad.adset_id) {
+                const adsetUrl = `https://graph.facebook.com/v19.0/${ad.adset_id}?fields=start_time,end_time&access_token=${ACCESS_TOKEN}`;
+                const adsetRes = await fetch(adsetUrl);
+                const adsetData = await adsetRes.json();
+
+                console.log('Datos del AdSet recibidos:', adsetData);
+
+                campaignStartTime = adsetData.start_time || "";
+                campaignStopTime = adsetData.end_time || "";
             }
 
             const campaign = {
@@ -56,12 +60,13 @@ export async function GET() {
                 name: ad.name,
                 status: ad.status,
                 effective_status: ad.effective_status,
-                start_time: startTime,
+                start_time: campaignStartTime,
+                stop_time: campaignStopTime,
                 impressions: insights?.impressions || 0,
-                clicks: insights?.clicks ? parseInt(insights.clicks) : undefined,
-                spend: insights?.spend ? parseFloat(insights.spend) : undefined,
-                date_start: insights?.date_start,
-                date_stop: insights?.date_stop,
+                clicks: insights?.clicks ? parseInt(insights.clicks) : 0,
+                spend: insights?.spend ? parseFloat(insights.spend) : 0,
+                date_start: insights?.date_start || null,
+                date_stop: insights?.date_stop || null,
                 targeting: ad.targeting || null,
             };
 
@@ -72,7 +77,10 @@ export async function GET() {
     } catch (error) {
         console.error('Error al actualizar campañas:', error);
         return NextResponse.json(
-            { message: 'Error al actualizar campañas', error: error instanceof Error ? error.message : 'Unknown error' },
+            {
+                message: 'Error al actualizar campañas',
+                error: error instanceof Error ? error.message : 'Unknown error',
+            },
             { status: 500 }
         );
     }

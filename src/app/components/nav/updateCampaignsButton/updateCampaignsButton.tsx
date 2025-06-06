@@ -30,7 +30,7 @@ export const CampaignList = () => {
             disabled={isUpdating}
             className={`btn btn-primary flex items-center gap-2
         ${isUpdating ? 'cursor-wait' : 'cursor-pointer hover:bg-blue-700'}
-        transition-colors duration-300`}
+        transition-colors duration-300 dark:text-white`}
             title="Actualizar campañas"
         >
             <RefreshCw

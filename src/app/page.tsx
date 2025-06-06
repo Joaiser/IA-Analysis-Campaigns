@@ -20,7 +20,6 @@ export default function Home() {
 
       <Nav />
       <main className=" flex flex-col items-center-safe justify-center py-10">
-        <h1 className="text-4xl font-bold">Dark mode funcionando 🚀</h1>
         < CampaignsOverview />
       </main >
     </>
