@@ -1,0 +1,65 @@
+TODO - Proyecto Campañas Meta Ads
+
+1. Arreglar el tema del targeting__✅__
+Revisar y corregir la estructura de la interfaz Targeting y su uso dentro de CampaignAd.
+
+
+Asegurarse que los datos recibidos cumplen con el tipo esperado.
+
+
+Validar que el targeting se renderiza y usa correctamente en la UI.
+
+
+Controlar posibles undefined o valores erróneos que puedan romper la app.
+__✅__
+
+2. Filtros avanzados
+Implementar filtros para segmentar las campañas por:
+
+Edad (age_min, age_max)
+
+Género
+
+Ubicación geográfica (países, regiones, ciudades)
+
+Plataforma (Facebook, Instagram, dispositivos)
+
+Estado campaña (activo, pausado, finalizado)
+
+UI para seleccionar filtros fácilmente.
+
+Backend o lógica para aplicar esos filtros sobre los datos cargados.
+
+3. Gráficas dinámicas
+Permitir añadir columnas/datos a la gráfica pulsando en los valores existentes (por ejemplo, clicks, impresiones, gasto).
+
+Pulsar de nuevo sobre un dato lo deselecciona y quita la columna.
+
+Actualizar la gráfica en tiempo real con los cambios.
+
+Guardar el estado de selección para mantener la configuración al navegar.
+
+4. Configuración flexible
+Añadir un panel/configuración donde:
+
+Se pueda seleccionar el rango de fechas (desde - hasta).
+
+Configurar otras opciones que surjan (filtros, métricas a mostrar, tipo de gráfica).
+
+Guardar la configuración para sesiones futuras (localStorage o backend).
+
+Validar los inputs para evitar errores.
+
+5. Integración con GPT
+Añadir módulo para conectar con la API de GPT.
+
+Crear interfaz para consultar datos, hacer análisis automáticos o pedir insights.
+
+Gestionar prompts y respuestas, control de uso (limitar tokens, controlar costes).
+
+Mostrar resultados en la UI de forma clara y útil.
+
+Posibilidad de guardar preguntas frecuentes o análisis predefinidos.
+
+6. Optimización, podemos cachear las campañas ya consultadas para evitar hacer
+muchas peticiones, mejora rendimiento y además, API GRAPH tiene rate limit

@@ -4,10 +4,12 @@ import { useTheme } from "next-themes"
 import { Moon, Sun, Settings } from "lucide-react"
 import { useEffect, useState } from "react"
 import { CampaignList } from "./updateCampaignsButton/updateCampaignsButton"
+import { useFilterStore } from "@/app/lib/store/filterStore"
 
 export function Nav() {
     const { theme, setTheme } = useTheme()
     const [mounted, setMounted] = useState(false)
+    const { toggleSidebar } = useFilterStore()
 
     useEffect(() => setMounted(true), [])
 
@@ -30,9 +32,11 @@ export function Nav() {
                     {isDark ? <Sun size={20} /> : <Moon size={20} />}
                 </button>
                 <button
-                    disabled
-                    className="text-gray-400 dark:text-gray-500 cursor-not-allowed"
-                    title="Configuracion"
+                    onClick={
+                        toggleSidebar
+                    }
+                    className="text-gray-600 dark:text-gray-300 cursor-pointer"
+                    title="Configuración"
                 >
                     <Settings size={20} />
                 </button>

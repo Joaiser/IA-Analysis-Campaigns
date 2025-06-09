@@ -1,15 +1,30 @@
 import clientPromise from "../mongodb";
 import { WithId, Document } from 'mongodb';
 
+
+export interface Targeting {
+    age_min?: number;
+    age_max?: number;
+    genders?: (number | string)[];
+    geo_locations?: {
+        countries?: string[];
+        regions?: string[];
+        cities?: string[];
+    };
+    publisher_platforms?: string[];
+    facebook_positions?: string[];
+    instagram_positions?: string[];
+    device_platforms?: string[];
+}
+
 export interface CampaignAd {
     id: string;
     name: string;
     status: string;
     effective_status: string;
+
     start_time?: string;
     stop_time?: string;
-    campaign_start_time?: string;
-    campaign_stop_time?: string;
     date_start?: string;
     date_stop?: string;
     insights_date_start?: string;
@@ -19,24 +34,15 @@ export interface CampaignAd {
     clicks?: number | string;
     spend?: number | string;
 
-    targeting?: {
-        age_min?: number;
-        age_max?: number;
-        age_range?: number[]; // Array de 2 números
-        genders?: (string | number)[]; // viene como Array(1) con números tipo 2 o 0
-        geo_locations?: {
-            countries?: string[];
-            regions?: string[];
-            cities?: string[];
-        };
-        custom_locations?: any[];
-        location_types?: string[];
-        custom_audiences?: any[];
-        interests?: { id: string; name: string }[];
-        targeting_automation?: {
-            advantage_audience?: number;
-            [key: string]: any;
-        };
+    objective?: string;
+
+    targeting?: Targeting;
+    custom_locations?: any[];
+    custom_audiences?: any[];
+    interests?: { id: string; name: string }[];
+    targeting_automation?: {
+        advantage_audience?: number;
+        [key: string]: any;
     };
 
     publisher_platforms?: string[];
@@ -44,6 +50,7 @@ export interface CampaignAd {
     instagram_positions?: string[];
     device_platforms?: string[];
 }
+
 
 
 

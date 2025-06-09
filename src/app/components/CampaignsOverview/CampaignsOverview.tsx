@@ -1,8 +1,8 @@
-// components/CampaignsOverview.tsx
 'use client';
 
 import { useCampaigns } from '@/app/lib/queries/useCampaign';
 import { useCampaignStore } from '@/app/lib/store/useCampaignStore';
+import { useFilterStore } from '@/app/lib/store/filterStore';
 import { CampaignAd } from '@/app/lib/models/CampaignAd';
 import {
     ResponsiveContainer,
@@ -11,13 +11,16 @@ import {
     XAxis,
     YAxis,
     Tooltip,
-    CartesianGrid
+    CartesianGrid,
+    Legend
 } from 'recharts';
 
 export const CampaignsOverview = () => {
     const { data, isLoading, isError, error } = useCampaigns();
-
     const { updatedMsg } = useCampaignStore();
+    const objective = useFilterStore(state => state.objective);
+    const dateRange = useFilterStore(state => state.dateRange);
+    const platforms = useFilterStore(state => state.platforms);
 
     const now = new Date();
 
@@ -31,9 +34,61 @@ export const CampaignsOverview = () => {
         return dateStr ? new Date(dateStr) : null;
     }
 
+    function isValidCampaign(campaign: CampaignAd): boolean {
+        const hasStats = Number(campaign.impressions ?? 0) > 0 || Number(campaign.clicks ?? 0) > 0 || Number(campaign.spend ?? 0) > 0;
+        const hasName = typeof campaign.name === 'string' && campaign.name.trim() !== '';
+        const hasDates = !!getStartDate(campaign) || !!getStopDate(campaign);
+        return hasStats && hasName && hasDates;
+    }
+
+    function matchesFilters(campaign: CampaignAd): boolean {
+        //dpuracion
+        console.log('Filtros:', { objective, dateRange, platforms });
+
+        //Objetivo 
+        const matchesObjective = !objective || campaign.objective == objective;
+
+        //Rango de fechas
+        const campaignStart = getStartDate(campaign)
+        const campaignStop = getStopDate(campaign)
+        const rangeStart = dateRange?.from
+        const rangeEnd = dateRange?.to
+        const matchesDateRange = !rangeStart || !rangeEnd || (
+            campaignStart &&
+            campaignStop &&
+            !isNaN(new Date(rangeStart).getTime()) &&
+            !isNaN(new Date(rangeEnd).getTime()) &&
+            campaignStop >= new Date(rangeStart) &&
+            campaignStart <= new Date(rangeEnd)
+        );
+
+        //platafromas 
+        const campaignPlatforms = campaign.targeting?.publisher_platforms ?? [];
+
+        const matchesPlatform = platforms.length === 0 ||
+            (Array.isArray(campaignPlatforms) && platforms.some(p => campaignPlatforms.includes(p)));
+
+        //depuracion
+        console.log('Campaña:', {
+            objective: campaign.objective,
+            startDate: getStartDate(campaign),
+            stopDate: getStopDate(campaign),
+            platforms: campaign.targeting?.publisher_platforms
+        });
+        //depuracion
+        console.log('Resultado matches:', matchesObjective, matchesDateRange, matchesPlatform);
+
+        return Boolean(matchesObjective) && Boolean(matchesDateRange) && Boolean(matchesPlatform)
+    }
 
     if (isLoading) return <div>Cargando campañas...</div>;
     if (isError) return <div>Error al cargar campañas: {error?.message}</div>;
+
+    const validCampaigns = (data?.filter(isValidCampaign) ?? []).filter(matchesFilters);
+
+    if (validCampaigns.length === 0) {
+        return <div>No hay campañas con datos para mostrar.</div>;
+    }
 
     return (
         <div className='space-y-6 w-3xl mx:w-2xs'>
@@ -43,13 +98,11 @@ export const CampaignsOverview = () => {
                 </div>
             )}
 
-            {data?.map((campaign) => {
+            {validCampaigns.map((campaign) => {
                 const startDate = getStartDate(campaign);
                 const stopDate = getStopDate(campaign);
-
                 const isFinished = stopDate && stopDate < now;
                 const statusLabel = isFinished ? 'Finalizada' : campaign.status;
-
                 const { clicks, impressions, spend, cpc, cpm, ctr } = campaign;
 
                 return (
@@ -57,7 +110,6 @@ export const CampaignsOverview = () => {
                         key={campaign.id}
                         className="rounded-lg shadow-md bg-white dark:bg-gray-900 border p-4 sm:p-6 md:p-8 w-full max-w-3xl mx-auto overflow-hidden"
                     >
-
                         <h2 className='text-lg font-bold mb-2 dark:text-white'>
                             {campaign.name}
                         </h2>
@@ -85,34 +137,82 @@ export const CampaignsOverview = () => {
                             <p>Clicks: {typeof clicks === 'number' ? clicks : 0}</p>
                             <p>Gasto: ${typeof spend === 'number' ? spend.toFixed(2) : '0.00'}</p>
                         </div>
-                        {/*Metricas calculadas */}
+
                         <div className='mb-4 text-sm dark:text-white space-y-1'>
-                            <p title="Coste por Click - lo que pagas por cada clic en el anuncio">
-                                <strong>CPC:</strong> {cpc !== null ? `$${cpc.toFixed((2))}` : 'N/A'}
-                            </p>
-                            <p title="Coste por Mil impresiones- lo que cuesta mostrar el anuncio mil veces">
-                                <strong>CPM:</strong> {cpm !== null ? `$${cpm.toFixed(2)}` : 'N/A'}
-                            </p>
-                            <p title="Click through rate - porcenntaje de gente que hace clic tras ver el anuncio">
-                                <strong>CTR:</strong> {ctr !== null ? `${ctr.toFixed(2)}%` : 'N/A'}
-                            </p>
+                            {campaign.targeting && typeof campaign.targeting === 'object' && (
+                                <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-md text-sm text-gray-800 dark:text-gray-200">
+                                    <h3 className="font-semibold mb-2">Targeting:</h3>
+                                    <ul className="list-disc list-inside space-y-1">
+                                        {campaign.targeting.age_min !== undefined && campaign.targeting.age_max !== undefined && (
+                                            <li>Edad: {campaign.targeting.age_min} - {campaign.targeting.age_max} años</li>
+                                        )}
+                                        {(campaign.targeting.genders ?? []).length > 0 && (
+                                            <li>
+                                                Género: {(campaign.targeting.genders ?? []).map(g => {
+                                                    if (g === 1 || g === '1') return 'Hombres';
+                                                    if (g === 2 || g === '2') return 'Mujeres';
+                                                    if (g === 0 || g === '0') return 'Todos';
+                                                    return g;
+                                                }).join(', ')}
+                                            </li>
+                                        )}
+                                        {campaign.targeting.geo_locations && (
+                                            <>
+                                                {(campaign.targeting.geo_locations.countries ?? []).length > 0 && (
+                                                    <li>Países: {(campaign.targeting.geo_locations.countries ?? []).join(', ')}</li>
+                                                )}
+                                                {(campaign.targeting.geo_locations.regions ?? []).length > 0 && (
+                                                    <li>Regiones: {(campaign.targeting.geo_locations.regions ?? []).join(', ')}</li>
+                                                )}
+                                                {(campaign.targeting.geo_locations.cities ?? []).length > 0 && (
+                                                    <li>Ciudades: {(campaign.targeting.geo_locations.cities ?? []).map((city: any) => city.name || city.key || 'desconocida').join(', ')}</li>
+                                                )}
+                                            </>
+                                        )}
+                                        {(campaign.targeting.publisher_platforms ?? []).length > 0 && (
+                                            <li>Plataformas: {(campaign.targeting.publisher_platforms ?? []).join(', ')}</li>
+                                        )}
+                                        {(campaign.targeting.facebook_positions ?? []).length > 0 && (
+                                            <li>Posiciones Facebook: {(campaign.targeting.facebook_positions ?? []).join(', ')}</li>
+                                        )}
+                                        {(campaign.targeting.instagram_positions ?? []).length > 0 && (
+                                            <li>Posiciones Instagram: {(campaign.targeting.instagram_positions ?? []).join(', ')}</li>
+                                        )}
+                                    </ul>
+                                </div>
+                            )}
+
+                            <p><strong>CPC:</strong> {typeof cpc === 'number' ? `$${cpc.toFixed(2)}` : 'N/A'}</p>
+                            <p><strong>CPM:</strong> {typeof cpm === 'number' ? `$${cpm.toFixed(2)}` : 'N/A'}</p>
+                            <p><strong>CTR:</strong> {typeof ctr === 'number' ? `${ctr.toFixed(2)}%` : 'N/A'}</p>
                         </div>
 
                         <div className="w-full h-64">
                             <ResponsiveContainer width="100%" height={200}>
                                 <BarChart
-                                    data={[
-                                        {
-                                            name: 'Campaña',
-                                            Impresiones: campaign.impressions ?? 0,
-                                            Clicks: campaign.clicks ?? 0,
-                                        },
-                                    ]}
+                                    data={[{
+                                        name: 'Campaña: ' + campaign.name,
+                                        Impresiones: impressions ?? 0,
+                                        Clicks: clicks ?? 0,
+                                    }]}
                                 >
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis dataKey="name" />
                                     <YAxis />
-                                    <Tooltip />
+                                    <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '14px' }} />
+                                    <Tooltip
+                                        content={({ active, payload }) => {
+                                            if (active && payload && payload.length) {
+                                                return (
+                                                    <div className="bg-white p-2 rounded shadow text-xs dark:bg-gray-800 dark:text-white">
+                                                        <p>Impresiones: {payload[0].payload.Impresiones}</p>
+                                                        <p>Clicks: {payload[0].payload.Clicks}</p>
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        }}
+                                    />
                                     <Bar dataKey="Impresiones" fill="#3b82f6" />
                                     <Bar dataKey="Clicks" fill="#10b981" />
                                 </BarChart>

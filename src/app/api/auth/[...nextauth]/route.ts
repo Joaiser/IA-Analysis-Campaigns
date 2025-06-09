@@ -20,21 +20,17 @@ export const authOptions: AuthOptions = {
                 const db = client.db("test");
                 const users = db.collection("users");
 
-                console.log("Trying to log in with email:", credentials?.email);
-
 
                 const user = await users.findOne({
                     email: { $regex: new RegExp(`^${credentials?.email}$`, "i") }
                 });
 
                 if (!user) {
-                    console.log("No user found");
                     return null;
                 }
 
                 const isValidPassword = await compare(credentials!.password, user.password);
                 if (!isValidPassword) {
-                    console.log("Invalid password");
                     return null;
                 }
 

@@ -18,7 +18,8 @@ const AD_FIELDS = [
     'effective_status',
     'campaign_id',
     'insights.date_preset(maximum){impressions,clicks,spend,date_start,date_stop}',
-    'targeting'
+    'targeting',
+    'objective'
 ].join(',');
 
 
@@ -30,6 +31,7 @@ export async function GET() {
         const url = `https://graph.facebook.com/v19.0/${AD_ACCOUNT_ID}/ads?fields=${AD_FIELDS},adset_id&access_token=${ACCESS_TOKEN}`;
         const response = await fetch(url);
         const result = await response.json();
+        let campaignObjective = null;
 
         if (!result.data) {
             return NextResponse.json(
@@ -48,11 +50,15 @@ export async function GET() {
                 const adsetUrl = `https://graph.facebook.com/v19.0/${ad.adset_id}?fields=start_time,end_time&access_token=${ACCESS_TOKEN}`;
                 const adsetRes = await fetch(adsetUrl);
                 const adsetData = await adsetRes.json();
-
-                console.log('Datos del AdSet recibidos:', adsetData);
-
                 campaignStartTime = adsetData.start_time || "";
                 campaignStopTime = adsetData.end_time || "";
+            }
+
+            if (ad.campaign_id) {
+                const campaignUrl = `https://graph.facebook.com/v19.0/${ad.campaign_id}?fields=objective&access_token=${ACCESS_TOKEN}`;
+                const campaignRes = await fetch(campaignUrl);
+                const campaignData = await campaignRes.json();
+                campaignObjective = campaignData.objective || null;
             }
 
             const campaign = {
@@ -68,6 +74,7 @@ export async function GET() {
                 date_start: insights?.date_start || null,
                 date_stop: insights?.date_stop || null,
                 targeting: ad.targeting || null,
+                objective: campaignObjective
             };
 
             await upsertCampaignAd(campaign);
