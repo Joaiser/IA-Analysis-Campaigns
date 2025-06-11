@@ -1,12 +1,14 @@
-// lib/react-query/useFilteredCampaigns.ts
-import { useQuery } from '@tanstack/react-query';
-import { useFilterStore } from '@/app/lib/store/filterStore';
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import { CampaignAd } from '../models/CampaignAd';
+import { useFilterStore } from '../store/filterStore';
 
-export const fetchFilteredCampaigns = async (filters: {
+type Filters = {
     objective?: string | null;
-    dateRange?: { from: string, to: string } | null;
+    dateRange?: { from: string; to: string } | null;
     platforms?: string[];
-}) => {
+};
+
+export const fetchFilteredCampaigns = async (filters: Filters): Promise<CampaignAd[]> => {
     const params = new URLSearchParams();
 
     if (filters.objective) params.append("objective", filters.objective);
@@ -16,16 +18,20 @@ export const fetchFilteredCampaigns = async (filters: {
 
     const res = await fetch(`/api/campaigns-filtered?${params.toString()}`);
     if (!res.ok) throw new Error('Error al obtener campañas filtradas');
-    return res.json();
+    return res.json(); // Asegúrate de que devuelve Campaign[]
 };
+
 
 export const useFilteredCampaigns = () => {
     const { objective, dateRange, platforms } = useFilterStore();
 
-    return useQuery({
+    return useQuery<CampaignAd[]>({
         queryKey: ['filtered-campaigns', { objective, dateRange, platforms }],
         queryFn: () => fetchFilteredCampaigns({ objective, dateRange, platforms }),
-        // Solo se ejecuta cuando hay filtros activos
-        enabled: !!objective || !!dateRange || (platforms && platforms.length > 0)
+        enabled: Boolean(
+            (objective && objective.trim() !== '') ||
+            (dateRange?.from && dateRange?.to) ||
+            (platforms && platforms.length > 0)
+        )
     });
-};
+}

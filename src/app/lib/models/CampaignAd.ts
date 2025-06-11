@@ -1,6 +1,6 @@
 import clientPromise from "../mongodb";
 import { WithId, Document } from 'mongodb';
-import { normalizeCampaign, sanitizeCampaignFields } from "@/app/lib/utils/numberHepers";
+import { normalizeCampaign, parseCampaignDates } from "@/app/lib/utils/numberHepers";
 
 
 export interface Targeting {
@@ -24,12 +24,12 @@ export interface CampaignAd {
     status: string;
     effective_status: string;
 
-    start_time?: string | number;
-    stop_time?: string | number;
-    date_start?: string | number;
-    date_stop?: string | number;
-    insights_date_start?: string | number;
-    insights_date_stop?: string | number;
+    start_time?: string | number | Date | null;
+    stop_time?: string | number | Date | null;
+    date_start?: string | number | Date | null;
+    date_stop?: string | number | Date | null;
+    insights_date_start?: string | number | Date | null;
+    insights_date_stop?: string | number | Date | null;
 
     impressions?: number | string;
     clicks?: number | string;
@@ -83,7 +83,7 @@ export async function upsertCampaignAd(ad: CampaignAd): Promise<void> {
     const db = client.db();
     const collection = db.collection(COLLECTION_NAME);
 
-    const sanitized = sanitizeCampaignFields(ad);
+    const sanitized = parseCampaignDates(ad);
     const normalized = normalizeCampaign(sanitized);
 
     await collection.updateOne(
@@ -94,23 +94,20 @@ export async function upsertCampaignAd(ad: CampaignAd): Promise<void> {
 }
 
 
+
 export async function getFilterredCampaignAds(filters: FilterParams) {
     const client = await clientPromise;
     const db = client.db();
     const collection = db.collection<CampaignAd>(COLLECTION_NAME);
 
-    const query: any = {
-        $and: []
-    };
+    const andConditions: any[] = [];
 
-    // Filtro por objetivo
     if (filters.objective) {
-        query.$and.push({ objective: filters.objective });
+        andConditions.push({ objective: filters.objective });
     }
 
-    // Filtro por rango de fechas
     if (filters.from && filters.to) {
-        const dateRangeFilter = {
+        andConditions.push({
             $or: [
                 {
                     $and: [
@@ -125,21 +122,18 @@ export async function getFilterredCampaignAds(filters: FilterParams) {
                     ]
                 }
             ]
-        };
-        query.$and.push(dateRangeFilter);
+        });
     }
 
-    // Filtro por plataformas
     if (filters.platforms && filters.platforms.length > 0) {
-        query.$and.push({
+        andConditions.push({
             'targeting.publisher_platforms': {
                 $in: filters.platforms.map(p => p.toLowerCase())
             }
         });
     }
 
-    // Filtros adicionales de validez
-    query.$and.push({
+    andConditions.push({
         $or: [
             { impressions: { $gt: 0 } },
             { clicks: { $gt: 0 } },
@@ -147,14 +141,16 @@ export async function getFilterredCampaignAds(filters: FilterParams) {
         ]
     });
 
-    query.$and.push({ name: { $exists: true, $ne: "" } });
+    andConditions.push({ name: { $exists: true, $ne: "" } });
 
-    query.$and.push({
+    andConditions.push({
         $or: [
             { date_start: { $exists: true } },
             { start_time: { $exists: true } }
         ]
     });
+
+    const query = andConditions.length > 0 ? { $and: andConditions } : {};
 
     console.log("🧠 Query final:", JSON.stringify(query, null, 2));
 

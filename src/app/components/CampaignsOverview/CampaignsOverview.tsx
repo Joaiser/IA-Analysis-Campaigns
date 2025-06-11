@@ -82,14 +82,14 @@ export const CampaignsOverview = () => {
             (Array.isArray(campaignPlatforms) && platforms.some(p => campaignPlatforms.includes(p)));
 
         //depuracion
-        console.log('Campaña:', {
-            objective: campaign.objective,
-            startDate: getStartDate(campaign),
-            stopDate: getStopDate(campaign),
-            platforms: campaign.targeting?.publisher_platforms
-        });
+        // console.log('Campaña:', {
+        //     objective: campaign.objective,
+        //     startDate: getStartDate(campaign),
+        //     stopDate: getStopDate(campaign),
+        //     platforms: campaign.targeting?.publisher_platforms
+        // });
         //depuracion
-        console.log('Resultado matches:', matchesObjective, matchesDateRange, matchesPlatform);
+        // console.log('Resultado matches:', matchesObjective, matchesDateRange, matchesPlatform);
 
         return matchesObjective && matchesDateRange && matchesPlatform
     }

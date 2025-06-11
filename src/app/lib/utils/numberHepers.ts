@@ -9,6 +9,7 @@ export interface NormalizedCampaignAd extends Omit<CampaignAd, 'clicks' | 'impre
     ctr: number | null;
 }
 
+// Convierte string o number a número seguro, fallback 0
 export function toNumberSafe(value: string | number | undefined | null): number {
     if (value === undefined || value === null) return 0;
     if (typeof value === 'number') return value;
@@ -16,19 +17,28 @@ export function toNumberSafe(value: string | number | undefined | null): number 
     return isNaN(parsed) ? 0 : parsed;
 }
 
-export function sanitizeCampaignFields(campaign: CampaignAd): CampaignAd {
+// Convierte cualquier valor a Date o null
+export function safeParseDate(value: any): Date | null {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? null : d;
+}
+
+// Solo parsea campos fecha
+export function parseCampaignDates(campaign: CampaignAd): CampaignAd {
     return {
         ...campaign,
-        start_time: toNumberSafe(campaign.start_time),
-        stop_time: toNumberSafe(campaign.stop_time),
-        date_start: toNumberSafe(campaign.date_start),
-        date_stop: toNumberSafe(campaign.date_stop),
-        insights_date_start: toNumberSafe(campaign.insights_date_start),
-        insights_date_stop: toNumberSafe(campaign.insights_date_stop),
+        start_time: safeParseDate(campaign.start_time),
+        stop_time: safeParseDate(campaign.stop_time),
+        date_start: safeParseDate(campaign.date_start),
+        date_stop: safeParseDate(campaign.date_stop),
+        insights_date_start: safeParseDate(campaign.insights_date_start),
+        insights_date_stop: safeParseDate(campaign.insights_date_stop),
     };
 }
 
-
+// Normaliza los números y calcula métricas
 export function normalizeCampaign(campaign: CampaignAd): NormalizedCampaignAd {
     const clicks = toNumberSafe(campaign.clicks);
     const impressions = toNumberSafe(campaign.impressions);
