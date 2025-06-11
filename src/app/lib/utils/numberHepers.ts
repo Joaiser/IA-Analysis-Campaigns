@@ -1,6 +1,6 @@
 import { CampaignAd } from "@/app/lib/models/CampaignAd";
 
-export interface NormalizedCampaignAd extends CampaignAd {
+export interface NormalizedCampaignAd extends Omit<CampaignAd, 'clicks' | 'impressions' | 'spend' | 'cpc' | 'cpm' | 'ctr'> {
     clicks: number;
     impressions: number;
     spend: number;
@@ -15,6 +15,19 @@ export function toNumberSafe(value: string | number | undefined | null): number 
     const parsed = Number(value);
     return isNaN(parsed) ? 0 : parsed;
 }
+
+export function sanitizeCampaignFields(campaign: CampaignAd): CampaignAd {
+    return {
+        ...campaign,
+        start_time: toNumberSafe(campaign.start_time),
+        stop_time: toNumberSafe(campaign.stop_time),
+        date_start: toNumberSafe(campaign.date_start),
+        date_stop: toNumberSafe(campaign.date_stop),
+        insights_date_start: toNumberSafe(campaign.insights_date_start),
+        insights_date_stop: toNumberSafe(campaign.insights_date_stop),
+    };
+}
+
 
 export function normalizeCampaign(campaign: CampaignAd): NormalizedCampaignAd {
     const clicks = toNumberSafe(campaign.clicks);

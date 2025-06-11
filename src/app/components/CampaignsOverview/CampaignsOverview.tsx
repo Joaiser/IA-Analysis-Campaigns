@@ -4,6 +4,7 @@ import { useCampaigns } from '@/app/lib/queries/useCampaign';
 import { useCampaignStore } from '@/app/lib/store/useCampaignStore';
 import { useFilterStore } from '@/app/lib/store/filterStore';
 import { CampaignAd } from '@/app/lib/models/CampaignAd';
+import { useFilteredCampaigns } from '@/app/lib/queries/useFilteredCampaigns';
 import {
     ResponsiveContainer,
     BarChart,
@@ -16,14 +17,25 @@ import {
 } from 'recharts';
 
 export const CampaignsOverview = () => {
-    const { data, isLoading, isError, error } = useCampaigns();
+    const {
+        data: allData,
+        isLoading: isAllLoading,
+        isError: isAllError,
+        error: allError,
+    } = useCampaigns();
+    const {
+        data: filteredData,
+        isLoading: isFilteredLoading,
+        isError: isFilteredError,
+        error: filteredError
+    } = useFilteredCampaigns();
+
     const { updatedMsg } = useCampaignStore();
-    const objective = useFilterStore(state => state.objective);
-    const dateRange = useFilterStore(state => state.dateRange);
-    const platforms = useFilterStore(state => state.platforms);
+    const { objective, dateRange, platforms } = useFilterStore();
 
     const now = new Date();
 
+    // Helpers
     function getStartDate(campaign: CampaignAd): Date | null {
         const dateStr = campaign.start_time || campaign.date_start || null;
         return dateStr ? new Date(dateStr) : null;
@@ -53,14 +65,15 @@ export const CampaignsOverview = () => {
         const campaignStop = getStopDate(campaign)
         const rangeStart = dateRange?.from
         const rangeEnd = dateRange?.to
-        const matchesDateRange = !rangeStart || !rangeEnd || (
-            campaignStart &&
-            campaignStop &&
-            !isNaN(new Date(rangeStart).getTime()) &&
-            !isNaN(new Date(rangeEnd).getTime()) &&
-            campaignStop >= new Date(rangeStart) &&
-            campaignStart <= new Date(rangeEnd)
-        );
+        const matchesDateRange = !rangeStart || !rangeEnd
+            ? true
+            : !!(campaignStart &&
+                campaignStop &&
+                !isNaN(new Date(rangeStart).getTime()) &&
+                !isNaN(new Date(rangeEnd).getTime()) &&
+                campaignStop >= new Date(rangeStart) &&
+                campaignStart <= new Date(rangeEnd));
+
 
         //platafromas 
         const campaignPlatforms = campaign.targeting?.publisher_platforms ?? [];
@@ -78,13 +91,26 @@ export const CampaignsOverview = () => {
         //depuracion
         console.log('Resultado matches:', matchesObjective, matchesDateRange, matchesPlatform);
 
-        return Boolean(matchesObjective) && Boolean(matchesDateRange) && Boolean(matchesPlatform)
+        return matchesObjective && matchesDateRange && matchesPlatform
+    }
+    // Lógica de datos
+    const isLoading = isAllLoading || isFilteredLoading;
+    const isError = isAllError || isFilteredError;
+    const error = allError || filteredError;
+    const dataToUse = filteredData ?? allData ?? [];
+    const validCampaigns = dataToUse.filter(isValidCampaign).filter(matchesFilters);
+
+
+
+    //renderizado condicional
+
+    if (isLoading) {
+        return <p>Cargando campañas...</p>
     }
 
-    if (isLoading) return <div>Cargando campañas...</div>;
-    if (isError) return <div>Error al cargar campañas: {error?.message}</div>;
-
-    const validCampaigns = (data?.filter(isValidCampaign) ?? []).filter(matchesFilters);
+    if (isError) {
+        return <p className='text-red-500'>Error {error?.message || 'Error al cargar los datos'}</p>
+    }
 
     if (validCampaigns.length === 0) {
         return <div>No hay campañas con datos para mostrar.</div>;
@@ -98,7 +124,7 @@ export const CampaignsOverview = () => {
                 </div>
             )}
 
-            {validCampaigns.map((campaign) => {
+            {validCampaigns.map((campaign: CampaignAd) => {
                 const startDate = getStartDate(campaign);
                 const stopDate = getStopDate(campaign);
                 const isFinished = stopDate && stopDate < now;

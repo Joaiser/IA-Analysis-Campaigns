@@ -8,6 +8,7 @@ interface FilterState {
     setFilters: (filters: Partial<Omit<FilterState, 'isOpen'>>) => void
     toggleSidebar: () => void
     closeSidebar: () => void
+    clearFilters: () => void
 }
 
 export const useFilterStore = create<FilterState>((set) => ({
@@ -18,4 +19,9 @@ export const useFilterStore = create<FilterState>((set) => ({
     setFilters: (filters) => set((state) => ({ ...state, ...filters })),
     toggleSidebar: () => set((state) => ({ isOpen: !state.isOpen })),
     closeSidebar: () => set({ isOpen: false }),
+    clearFilters: () => set({
+        objective: null,
+        dateRange: null,
+        platforms: []
+    })
 }))
