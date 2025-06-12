@@ -19,6 +19,6 @@ export async function fetchObjectivesFromDB(): Promise<ObjectiveItem[]> {
 export const useCampaignObjectives = () => {
     return useQuery({
         queryKey: ["campaign-objectives"],
-        queryFn: fetchObjectivesFromDB
+        queryFn: fetchObjectivesFromDB,
     })
 }

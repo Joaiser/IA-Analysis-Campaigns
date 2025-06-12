@@ -2,6 +2,8 @@
 
 import { useCampaignObjectives } from "@/app/lib/queries/useCampaignObjectives"
 import { useFilterStore } from "@/app/lib/store/filterStore"
+import { objectiveLabels } from "@/app/lib/utils/constants/objectiveLabels";
+import { usePrefetchQuery } from "@/app/lib/queries/usePrefetchQuery";
 
 export function SelectObjective() {
     const { data: objectives, isLoading, error } = useCampaignObjectives();
@@ -14,14 +16,15 @@ export function SelectObjective() {
         <select
             value={objective ?? ""}
             onChange={(e) => setFilters({ objective: e.target.value || null })}
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded my-3"
         >
-            <option value="">Todos los objetivos</option>
-            {objectives?.map((obj: { value: string; label: string }) => (
-                <option key={obj.value} value={obj.value}>
-                    {obj.label}
+            <option value="" className=" text-black dark:text-black">Todos los objetivos</option>
+            {(Array.isArray(objectives) ? objectives : []).map((obj: { value: string; label: string }) => (
+                <option key={obj.value} value={obj.value} className=" text-black dark:text-black">
+                    {objectiveLabels[obj.label] || obj.label}
                 </option>
             ))}
         </select>
+
     )
 }
