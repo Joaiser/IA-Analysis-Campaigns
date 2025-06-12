@@ -30,6 +30,7 @@ UI para seleccionar filtros fácilmente.
 
 Backend o lógica para aplicar esos filtros sobre los datos cargados.
 
+
 3. Gráficas dinámicas
 Permitir añadir columnas/datos a la gráfica pulsando en los valores existentes (por ejemplo, clicks, impresiones, gasto).
 
@@ -39,7 +40,8 @@ Actualizar la gráfica en tiempo real con los cambios.
 
 Guardar el estado de selección para mantener la configuración al navegar.
 
-4. Configuración flexible
+
+4. Configuración flexible__✅__
 Añadir un panel/configuración donde:
 
 Se pueda seleccionar el rango de fechas (desde - hasta).
@@ -48,7 +50,8 @@ Configurar otras opciones que surjan (filtros, métricas a mostrar, tipo de grá
 
 Guardar la configuración para sesiones futuras (localStorage o backend).
 
-Validar los inputs para evitar errores.
+Validar los inputs para evitar errores.__✅__
+
 
 5. Integración con GPT
 Añadir módulo para conectar con la API de GPT.

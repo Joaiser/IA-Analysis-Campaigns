@@ -4,6 +4,7 @@ if (!process.env.MONGODB_URI) {
     throw new Error("MONGODB_URI environment variable is not defined");
 }
 const uri: string = process.env.MONGODB_URI;
+const dbName: string | undefined = process.env.MONGODB_DB
 const options = {}
 
 let client: MongoClient;
@@ -31,4 +32,4 @@ clientPromise
         console.error("Error de conexión a MongoDB:", error.message);
     });
 
-export default clientPromise;
+export { clientPromise, dbName };

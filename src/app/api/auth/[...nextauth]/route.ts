@@ -1,8 +1,7 @@
-// src/app/api/auth/[...nextauth]/route.ts
 import NextAuth, { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
-import clientPromise from "@/app/lib/mongodb";
+import { clientPromise, dbName } from "@/app/lib/mongodb";
 
 export const authOptions: AuthOptions = {
     session: {
@@ -16,23 +15,22 @@ export const authOptions: AuthOptions = {
                 password: { label: "Password", type: "password" },
             },
             async authorize(credentials) {
+                if (!credentials?.email || !credentials?.password) {
+                    throw new Error("Email and password are required");
+                }
+
                 const client = await clientPromise;
-                const db = client.db("test");
+                const db = client.db(dbName);
                 const users = db.collection("users");
 
-
                 const user = await users.findOne({
-                    email: { $regex: new RegExp(`^${credentials?.email}$`, "i") }
+                    email: { $regex: new RegExp(`^${credentials.email}$`, "i") },
                 });
 
-                if (!user) {
-                    return null;
-                }
+                if (!user) return null;
 
-                const isValidPassword = await compare(credentials!.password, user.password);
-                if (!isValidPassword) {
-                    return null;
-                }
+                const isValidPassword = await compare(credentials.password, user.password);
+                if (!isValidPassword) return null;
 
                 return {
                     id: user._id.toString(),
@@ -53,7 +51,7 @@ export const authOptions: AuthOptions = {
             return token;
         },
         async session({ session, token }) {
-            if (token?.role) {
+            if (token?.role && session.user) {
                 session.user.role = token.role;
             }
             return session;
@@ -61,6 +59,6 @@ export const authOptions: AuthOptions = {
     },
 };
 
-// handler para la API route
+// API Route handler
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

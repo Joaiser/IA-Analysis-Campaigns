@@ -1,5 +1,5 @@
-import clientPromise from "../mongodb";
-import { WithId, Document } from 'mongodb';
+import { clientPromise, dbName } from "../mongodb";
+import { WithId, Document, Collection } from 'mongodb';
 import { normalizeCampaign, parseCampaignDates } from "@/app/lib/utils/numberHepers";
 
 
@@ -63,16 +63,16 @@ export interface FilterParams {
     platforms?: string[];
 }
 
+const COLLECTION_NAME = process.env.MONGODB_COLLECTION_CAMPAIGNS;
 
-
-
-const COLLECTION_NAME = 'campaign_ads';
-
+if (!COLLECTION_NAME) {
+    throw new Error("❌ Falta la variable MONGODB_COLLECTION_CAMPAIGNS en .env");
+}
 
 export async function getAllCampaignAds(): Promise<WithId<Document>[]> {
     const client = await clientPromise;
-    const db = client.db();
-    const collection = db.collection(COLLECTION_NAME);
+    const db = client.db(dbName);
+    const collection = db.collection(COLLECTION_NAME!);
     return collection.find({}).toArray();
 
 }
@@ -80,15 +80,14 @@ export async function getAllCampaignAds(): Promise<WithId<Document>[]> {
 
 export async function upsertCampaignAd(ad: CampaignAd): Promise<void> {
     const client = await clientPromise;
-    const db = client.db();
-    const collection = db.collection(COLLECTION_NAME);
-
+    const db = client.db(dbName);
+    const collection = db.collection<CampaignAd>(COLLECTION_NAME!);
     const sanitized = parseCampaignDates(ad);
     const normalized = normalizeCampaign(sanitized);
 
     await collection.updateOne(
         { id: ad.id },
-        { $set: normalized },
+        { $set: normalized as Partial<CampaignAd> },
         { upsert: true }
     );
 }
@@ -97,8 +96,8 @@ export async function upsertCampaignAd(ad: CampaignAd): Promise<void> {
 
 export async function getFilterredCampaignAds(filters: FilterParams) {
     const client = await clientPromise;
-    const db = client.db();
-    const collection = db.collection<CampaignAd>(COLLECTION_NAME);
+    const db = client.db(dbName);
+    const collection: Collection<CampaignAd> = db.collection(COLLECTION_NAME!);
 
     const andConditions: any[] = [];
 
@@ -152,7 +151,7 @@ export async function getFilterredCampaignAds(filters: FilterParams) {
 
     const query = andConditions.length > 0 ? { $and: andConditions } : {};
 
-    console.log("🧠 Query final:", JSON.stringify(query, null, 2));
+    // console.log("🧠 Query final:", JSON.stringify(query, null, 2));
 
     return collection.find(query).toArray();
 }
