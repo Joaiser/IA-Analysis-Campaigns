@@ -5,6 +5,7 @@ import { useCampaignStore } from '@/app/lib/store/useCampaignStore';
 import { useFilterStore } from '@/app/lib/store/filterStore';
 import { CampaignAd } from '@/app/lib/models/CampaignAd';
 import { useFilteredCampaigns } from '@/app/lib/queries/useFilteredCampaigns';
+import Link from 'next/link';
 import {
     ResponsiveContainer,
     BarChart,
@@ -54,8 +55,8 @@ export const CampaignsOverview = () => {
     }
 
     function matchesFilters(campaign: CampaignAd): boolean {
-        //dpuracion
-        console.log('Filtros:', { objective, dateRange, platforms });
+        //dpuracion de filtros
+        // console.log('Filtros:', { objective, dateRange, platforms });
 
         //Objetivo 
         const matchesObjective = !objective || campaign.objective == objective;
@@ -137,7 +138,12 @@ export const CampaignsOverview = () => {
                         className="rounded-lg shadow-md bg-white dark:bg-gray-900 border p-4 sm:p-6 md:p-8 w-full max-w-3xl mx-auto overflow-hidden"
                     >
                         <h2 className='text-lg font-bold mb-2 dark:text-white'>
-                            {campaign.name}
+                            <Link
+                                href={`/campaigns/${campaign.id}`}
+                                className="text-blue-600 hover:underline dark:text-blue-400"
+                            >
+                                {campaign.name}
+                            </Link>
                         </h2>
 
                         <p className='text-sm dark:text-gray-300 mb-1'>
@@ -158,11 +164,21 @@ export const CampaignsOverview = () => {
                             </p>
                         )}
 
-                        <div className='mb-4 dark:text-white'>
-                            <p>Impresiones: {typeof impressions === 'number' ? impressions : 0}</p>
-                            <p>Clicks: {typeof clicks === 'number' ? clicks : 0}</p>
-                            <p>Gasto: ${typeof spend === 'number' ? spend.toFixed(2) : '0.00'}</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm mb-6 text-gray-800 dark:text-gray-100">
+                            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 flex flex-col justify-center items-center">
+                                <p className="font-semibold text-sm">Impresiones</p>
+                                <p>{typeof impressions === "number" ? impressions : 0}</p>
+                            </div>
+                            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 flex flex-col justify-center items-center">
+                                <p className="font-semibold text-sm">Clicks</p>
+                                <p>{typeof clicks === "number" ? clicks : 0}</p>
+                            </div>
+                            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 flex flex-col justify-center items-center">
+                                <p className="font-semibold text-sm">Gasto</p>
+                                <p>${typeof spend === "number" ? spend.toFixed(2) : "0.00"}</p>
+                            </div>
                         </div>
+
 
                         <div className='mb-4 text-sm dark:text-white space-y-1'>
                             {campaign.targeting && typeof campaign.targeting === 'object' && (
@@ -208,9 +224,27 @@ export const CampaignsOverview = () => {
                                 </div>
                             )}
 
-                            <p><strong>CPC:</strong> {typeof cpc === 'number' ? `$${cpc.toFixed(2)}` : 'N/A'}</p>
-                            <p><strong>CPM:</strong> {typeof cpm === 'number' ? `$${cpm.toFixed(2)}` : 'N/A'}</p>
-                            <p><strong>CTR:</strong> {typeof ctr === 'number' ? `${ctr.toFixed(2)}%` : 'N/A'}</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-800 dark:text-gray-100 mb-4">
+                                <div className="bg-blue-50 dark:bg-blue-900 rounded-lg p-6 flex items-center justify-center">
+                                    <p className="font-semibold mr-5" title="Coste por clic">CPC</p>
+                                    <p title={typeof cpc === "number" ? `$${cpc.toFixed(4)}` : "N/A"}>
+                                        {typeof cpc === "number" ? `$${cpc.toFixed(2)}` : "N/A"}
+                                    </p>
+                                </div>
+                                <div className="bg-green-50 dark:bg-green-900 rounded-lg p-6 flex items-center justify-center">
+                                    <p className="font-semibold mr-5" title="Coste por mil impresiones">CPM</p>
+                                    <p title={typeof cpm === "number" ? `$${cpm.toFixed(4)}` : "N/A"}>
+                                        {typeof cpm === "number" ? `$${cpm.toFixed(2)}` : "N/A"}
+                                    </p>
+                                </div>
+                                <div className="bg-yellow-50 dark:bg-yellow-900 rounded-lg p-6 flex items-center justify-center">
+                                    <p className="font-semibold mr-5" title="Porcentaje de clics por impresión">CTR</p>
+                                    <p title={typeof ctr === "number" ? `${ctr.toFixed(4)}%` : "N/A"}>
+                                        {typeof ctr === "number" ? `${ctr.toFixed(2)}%` : "N/A"}
+                                    </p>
+                                </div>
+                            </div>
+
                         </div>
 
                         <div className="w-full h-64">

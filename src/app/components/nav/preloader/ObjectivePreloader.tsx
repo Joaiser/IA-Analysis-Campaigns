@@ -1,9 +1,8 @@
 'use client'
 
 import { usePrefetchQuery } from "@/app/lib/queries/usePrefetchQuery"
-import { fetchObjectivesFromDB } from "@/app/lib/queries/useCampaignObjectives"
-
+import { fetchCampaignObjectives } from "@/app/lib/api/apiClient"
 export function ObjectivePreloader() {
-    usePrefetchQuery(["campaign-objectives"], fetchObjectivesFromDB)
+    usePrefetchQuery(["campaign-objectives"], fetchCampaignObjectives)
     return null
 }

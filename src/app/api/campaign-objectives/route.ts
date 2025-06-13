@@ -6,17 +6,17 @@ export async function GET() {
     try {
         const client = await clientPromise;
         const db = client.db(dbName);
-        console.log("DB usada:", db.databaseName);
+        // console.log("DB usada:", db.databaseName);
         const collections = await db.listCollections().toArray();
-        console.log("Colecciones:", collections.map(c => c.name));
+        // console.log("Colecciones:", collections.map(c => c.name));
 
         const collection = db.collection("ia-analisys-campaigns");
 
         const sampleDocs = await collection.find({}).limit(3).toArray();
-        console.log("Ejemplo docs:", sampleDocs);
+        // console.log("Ejemplo docs:", sampleDocs);
 
         const objectives = await collection.find({ objective: { $exists: true, $ne: null } }).toArray();
-        console.log("Objectives field values:", objectives.map(d => d.objective));
+        // console.log("Objectives field values:", objectives.map(d => d.objective));
 
         // Mapear y limpiar
         const clean = objectives
@@ -28,7 +28,7 @@ export async function GET() {
         const unique = [...new Set(clean)];
 
         const response = unique.map(key => ({ value: key, label: key }));
-        console.log("Response final:", response);
+        // console.log("Response final:", response);
 
         return NextResponse.json(response);
 

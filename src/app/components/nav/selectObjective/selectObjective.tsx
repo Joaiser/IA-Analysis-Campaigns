@@ -3,7 +3,7 @@
 import { useCampaignObjectives } from "@/app/lib/queries/useCampaignObjectives"
 import { useFilterStore } from "@/app/lib/store/filterStore"
 import { objectiveLabels } from "@/app/lib/utils/constants/objectiveLabels";
-import { usePrefetchQuery } from "@/app/lib/queries/usePrefetchQuery";
+
 
 export function SelectObjective() {
     const { data: objectives, isLoading, error } = useCampaignObjectives();
