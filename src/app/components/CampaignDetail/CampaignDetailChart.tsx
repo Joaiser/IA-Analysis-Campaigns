@@ -1,3 +1,5 @@
+'use client'
+
 import {
     BarChart,
     Bar,
@@ -6,23 +8,52 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    Legend
-}
-    from "recharts";
+    Legend,
+    LineChart,
+    Line
+} from "recharts";
 import { CampaignAd } from '@/app/lib/models/CampaignAd'
+import { useChartStore, MetricCategory } from "@/app/lib/store/useChartStore"
+import { NormalizedCampaignAd } from "@/app/lib/utils/numberHepers";
 
 type Props = {
     campaign: CampaignAd
 }
 
-export function CampaignDetailChart({ campaign }: Props) {
-    const { name, impressions = 0, clicks = 0 } = campaign;
+export const metricCategoryMap: Record<MetricCategory, { label: string; key: keyof NormalizedCampaignAd }[]> = {
+    rendimiento: [
+        { label: "Impresiones", key: "impressions" },
+        { label: "Clicks", key: "clicks" },
+        { label: "CPM", key: "cpm" },
+    ],
+    conversion: [
+        { label: "CPC", key: "cpc" },
+        { label: "CTR", key: "ctr" },
+        { label: "ROAS", key: "roas" }, // Si lo tienes o piensas incluirlo más adelante
+    ],
+    alcance: [
+        { label: "Alcance", key: "impressions" }, // O usa "reach" si lo incluyes
+        { label: "Frecuencia", key: "ctr" }, // Este lo puedes ajustar cuando añadas "frequency"
+    ],
+}
 
-    const data = [{
-        name: `Campaña: ${name}`,
-        Impresiones: impressions,
-        Clicks: clicks
-    }]
+
+export function CampaignDetailChart({ campaign }: Props) {
+    const { selectedCategory } = useChartStore()
+    const metrics = metricCategoryMap[selectedCategory] || []
+
+    const dataEntry: Record<string, number | null | string> = {
+        name: `Campaña: ${campaign.name}`,
+    }
+
+    metrics.forEach(({ label, key }) => {
+        const rawValue = campaign[key]
+        dataEntry[label] = typeof rawValue === "number"
+            ? parseFloat(rawValue.toFixed(2))
+            : 0
+    })
+
+    const data = [dataEntry]
 
     return (
         <div className="relative w-full h-64 z-10">
@@ -31,24 +62,30 @@ export function CampaignDetailChart({ campaign }: Props) {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />
-                    <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '14px' }} />
+                    <Legend />
                     <Tooltip
                         content={({ active, payload }) => {
                             if (active && payload && payload.length) {
                                 return (
                                     <div className="bg-white p-2 rounded shadow text-xs dark:bg-gray-800 dark:text-white">
-                                        <p>Impresiones: {payload[0].payload.Impresiones}</p>
-                                        <p>Clicks: {payload[0].payload.Clicks}</p>
+                                        {metrics.map(({ label }) => (
+                                            <p key={label}>{label}: {payload[0].payload[label]}</p>
+                                        ))}
                                     </div>
                                 );
                             }
                             return null;
                         }}
                     />
-                    <Bar dataKey="Impresiones" fill="#3b82f6" />
-                    <Bar dataKey="Clicks" fill="#10b981" />
+                    {metrics.map(({ label }, index) => (
+                        <Bar
+                            key={label}
+                            dataKey={label}
+                            fill={index % 2 === 0 ? "#3b82f6" : "#10b981"}
+                        />
+                    ))}
                 </BarChart>
             </ResponsiveContainer>
         </div>
-    );
+    )
 }

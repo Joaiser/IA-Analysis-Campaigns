@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { clientPromise, dbName } from "@/app/lib/mongodb";
 import { AiReport } from "@/app/lib/models/aiReports";
 import OpenAi from "openai"
+import { saveAiReport } from "@/app/lib/models/aiReports";
+
 
 const openai = new OpenAi({
     apiKey: process.env.OPEN_API_KEY,
@@ -66,7 +68,7 @@ export async function POST(req: Request, { params }: { params: { campaignId: str
 
         //1. Verificar si ya hay un analisis guardado
         const existing = await db.collection<AiReport>("ai_reports").findOne({ campaignId })
-        if (existing) return NextResponse.json({ message: "campaña no encontrada" }, { status: 400 })
+        if (existing) return NextResponse.json({ message: "Ya existe un informe para esta campaña" }, { status: 400 })
 
         //2. Saca datos relevantes de la campaña
         const campaign = await db.collection("ia_analysis_campaigns").findOne({ id: campaignId })
@@ -107,12 +109,33 @@ export async function POST(req: Request, { params }: { params: { campaignId: str
             modelUsed: "gpt-4o-mini",
         };
 
-        await db.collection<AiReport>("ai_reports").insertOne(newReport)
+        await saveAiReport(newReport)
 
         //6. Devuelve el analisis
-        return NextResponse.json({ analysis, cached: false })
+        // return NextResponse.json({ newReport, cached: false })
+        return new Response(JSON.stringify({ report: 'Simulación de reporte AI' }), { status: 200 })
     } catch (error) {
         console.error("Error generando análisis GPT:", error);
         return NextResponse.json({ message: "Error interno generando análisis" }, { status: 500 });
+    }
+}
+
+//verificar si hay un informe generado en a bd
+export async function GET(req: Request, { params }: { params: { campaignId: string } }) {
+
+    const { campaignId } = params
+
+    try {
+        const client = await clientPromise
+        const db = client.db(dbName)
+
+        const existing = await db.collection<AiReport>("ai_reports").findOne({ campaignId })
+
+        if (!existing) return NextResponse.json({ found: false })
+
+        return NextResponse.json({ found: true, report: existing })
+    } catch (error) {
+        console.error("Error comprobando informe GPT:", error)
+        return NextResponse.json({ message: "Error interno" }, { status: 500 })
     }
 }

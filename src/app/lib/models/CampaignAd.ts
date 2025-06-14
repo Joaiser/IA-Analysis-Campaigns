@@ -34,9 +34,10 @@ export interface CampaignAd {
     impressions?: number | string;
     clicks?: number | string;
     spend?: number | string;
-    cpc?: number | string;
-    cpm?: number | string;
-    ctr?: number | string;
+    cpc?: number | null;
+    cpm?: number | null;
+    ctr?: number | null;
+    roas?: number | any
 
 
     objective?: string;

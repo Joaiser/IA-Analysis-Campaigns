@@ -7,6 +7,7 @@ export interface NormalizedCampaignAd extends Omit<CampaignAd, 'clicks' | 'impre
     cpc: number | null;
     cpm: number | null;
     ctr: number | null;
+    roas?: number
 }
 
 // Convierte string o number a número seguro, fallback 0

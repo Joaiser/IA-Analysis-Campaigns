@@ -5,7 +5,7 @@ import { Moon, Sun, Settings } from "lucide-react"
 import { useEffect, useState } from "react"
 import { CampaignList } from "./updateCampaignsButton/updateCampaignsButton"
 import { useFilterStore } from "@/app/lib/store/filterStore"
-
+import Link from 'next/link';
 export function Nav() {
     const { theme, setTheme } = useTheme()
     const [mounted, setMounted] = useState(false)
@@ -20,7 +20,11 @@ export function Nav() {
     return (
         <nav className="flex items-center justify-between px-6 py-9 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                AdVision
+                <Link href={`/`}
+                    className="text-blue-600 hover:underline dark:text-blue-400"
+                >
+                    AdVision
+                </Link>
             </h1>
             <div className="flex items-center gap-4">
                 <CampaignList />

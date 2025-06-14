@@ -1,5 +1,6 @@
 import { CampaignAd } from "@/app/lib/models/CampaignAd"
 import { CampaignDetailChart } from "@/app/components/CampaignDetail/CampaignDetailChart";
+import { ChartMetricSelector } from "./ChartMetricSelector";
 
 type Props = {
     campaign: CampaignAd
@@ -141,6 +142,7 @@ export function CampaignDetail({ campaign }: Props) {
 
 
                 <div className="mt-8 relative w-full h-64 z-50">
+                    <ChartMetricSelector />
                     <CampaignDetailChart campaign={campaign} />
                 </div>
             </div>

@@ -6,6 +6,7 @@ import { useFilterStore } from '@/app/lib/store/filterStore';
 import { CampaignAd } from '@/app/lib/models/CampaignAd';
 import { useFilteredCampaigns } from '@/app/lib/queries/useFilteredCampaigns';
 import Link from 'next/link';
+import { GenerateAnalysisButton } from '../GenerateAnalysisButton/GenerateAnalysisButton';
 import {
     ResponsiveContainer,
     BarChart,
@@ -16,6 +17,7 @@ import {
     CartesianGrid,
     Legend
 } from 'recharts';
+
 
 export const CampaignsOverview = () => {
     const {
@@ -224,17 +226,17 @@ export const CampaignsOverview = () => {
                                 </div>
                             )}
 
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-800 dark:text-gray-100 mb-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-800 dark:text-gray-100 my-4">
                                 <div className="bg-blue-50 dark:bg-blue-900 rounded-lg p-6 flex items-center justify-center">
                                     <p className="font-semibold mr-5" title="Coste por clic">CPC</p>
-                                    <p title={typeof cpc === "number" ? `$${cpc.toFixed(4)}` : "N/A"}>
-                                        {typeof cpc === "number" ? `$${cpc.toFixed(2)}` : "N/A"}
+                                    <p title={typeof cpc === "number" ? `${cpc.toFixed(4)}€` : "N/A"}>
+                                        {typeof cpc === "number" ? `${cpc.toFixed(2)}€` : "N/A"}
                                     </p>
                                 </div>
                                 <div className="bg-green-50 dark:bg-green-900 rounded-lg p-6 flex items-center justify-center">
                                     <p className="font-semibold mr-5" title="Coste por mil impresiones">CPM</p>
-                                    <p title={typeof cpm === "number" ? `$${cpm.toFixed(4)}` : "N/A"}>
-                                        {typeof cpm === "number" ? `$${cpm.toFixed(2)}` : "N/A"}
+                                    <p title={typeof cpm === "number" ? `${cpm.toFixed(4)}€` : "N/A"}>
+                                        {typeof cpm === "number" ? `${cpm.toFixed(2)}€` : "N/A"}
                                     </p>
                                 </div>
                                 <div className="bg-yellow-50 dark:bg-yellow-900 rounded-lg p-6 flex items-center justify-center">
@@ -278,6 +280,7 @@ export const CampaignsOverview = () => {
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
+                        <GenerateAnalysisButton campaignId={campaign.id} />
                     </div>
                 );
             })}
